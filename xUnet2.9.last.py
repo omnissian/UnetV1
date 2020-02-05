@@ -1,59 +1,13 @@
-import pdb
-import sys
+
 import torch
 import torch.nn as nn
-import torchvision.utils as tvis
 import torchvision.transforms as transforms
-import torchvision.datasets as dsets
-import matplotlib.pyplot as plt
-import random
 import os
-#---import torch
-import torch.nn as nn
-import torchvision.transforms as transforms
-import torchvision.datasets as dsets
-#import matplotlib.pyplot as plt
-import random
-import os
-#import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
 import torch.utils.data as data
 import pdb
 import datetime
-
-
-
-#----------------just for test------------------------
-
-#
-# img=Image.open("/home/std_11/MazurM/UnetV1/DataSet1/ImgData/img/205_508_0.tiff")
-# img=np.array(img)
-# pdb.set_trace()
-#
-# img=Image.fromarray(img)
-# img.save("/home/std_11/MazurM/UnetV1/PredictedImages/Kartinka.tiff")
-# img=torch.from_numpy(img)
-# img=img.type(torch.int32)
-# plt.imsave("/home/std_11/MazurM/UnetV1/PredictedImages/Kartinka.tiff",img)
-# plt.imshow(img)
-# plt.show()
-#
-# # >> > import matplotlib.pyplot as plt
-# # >> > from PIL import Image
-# # >> > import numy as np
-# # >> > kek = Image.open('/storage/MazurM/Task1/validation/mask_build/212_509_750.tiff')
-# # >> > import numpy as np
-# # >> > kek = np.array(kek)
-# # >> > plt.imshow(kek)
-#
-# pdb.set_trace()
-
-
-#----------------just for test------------------------
-
-
-#
 path_learn_in="/home/std_11/MazurM/DB_cut_images/DB_cut/google/"
 path_learn_targets="/home/std_11/MazurM/DB_cut_images/DB_cut/all_mask/"
 path_vaild_in="/home/std_11/MazurM/DB_cut_images/DB_cut/Valid/GoogleIn/"
@@ -74,104 +28,8 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 names_learn=os.listdir(path_learn_in)
 names_valid=os.listdir(path_vaild_in)
 
-#------------------augmentation----------------------------------------
-#----------convert 3Channel colored image to 1channel class tensor--------
-#----------Validation targets------------------ create a function of it augmented
-
 list_aug_learn_in = []
 list_aug_learn_targets = []
-
-#torch.set_default_tensor_type('torch.cuda.FloatTensor')
-
-#-----------custom dataloader below-----------------
-
-# class DatasetCustom(data.Dataset):
-#     def __init__(self,type): #def __init__(self, str): str - path or TYPE of forward
-#         if((type=="train") or (type!=0)):
-#             self.path_in=path_learn_in
-#             self.path_targets=path_learn_targets
-#             self.names=os.listdir(path_learn_in)
-#         else:
-#             self.path_in=path_vaild_in
-#             self.path_targets=path_vaild_targets
-#             self.names=os.listdir(path_vaild_in)
-#
-#     def __getitem__(self, item):
-#         img = np.array(Image.open(path_vaild_in + names_valid[item]))
-#         label = np.array(Image.open(path_vaild_targets + names_valid[item]))
-#         # img = torch.from_numpy(np.asarray(img))
-#         label = np.asarray(label[:, :, 0])  # [:,:,0] - first channel only because THIS SPECIFIC TASK!!
-#         height = len(label[:, 0])
-#         width = len(label[0, :])
-#         for i in range(width):
-#             for j in range(height):
-#                 if (label[i, j] >= 210):
-#                     label[i, j] = 1
-#                 else:
-#                     label[i, j] = 0
-#         label = torch.from_numpy(label)
-#         img = torch.from_numpy(img)
-#         img = img.permute(2, 0, 1)
-#
-#         # return img, label.type()
-#         return img.type(torch.FloatTensor), label.type(torch.FloatTensor)
-#
-#     def __len__(self):
-#         return len(names_valid)
-
-#----------custom dataloader above------------------
-
-class DataValid(data.Dataset):
-    def __init__(self):
-        pass
-    def __getitem__(self, item):
-        img=np.array(Image.open(path_vaild_in+names_valid[item]))
-        label=np.array(Image.open(path_vaild_targets+names_valid[item]))
-        # img = torch.from_numpy(np.asarray(img))
-        label = np.asarray(label[:,:,0]) # [:,:,0] - first channel only because THIS SPECIFIC TASK!!
-        height=len(label[:,0])
-        width=len(label[0,:])
-        for i in range(width):
-            for j in range(height):
-                if(label[i,j]>=210):
-                    label[i,j]=1
-                else:
-                    label[i,j]=0
-        label=torch.from_numpy(label)
-        img=torch.from_numpy(img)
-        img=img.permute(2,0,1)
-
-        # return img, label.type()
-        return img.type(torch.FloatTensor), label.type(torch.FloatTensor)
-    def __len__(self):
-        return len(names_valid)
-
-#-----------------------
-class DataTrain(data.Dataset):
-    def __init__(self):
-        pass
-    def __getitem__(self, item):
-        img=np.array(Image.open(path_learn_in+names_learn[item]))
-        label=np.array(Image.open(path_learn_in+names_learn[item]))
-        # label=np.array(Image.open(path_learn_in+names_learn[item]))
-        # img = torch.from_numpy(np.asarray(img))
-        label = np.asarray(label[:,:,0]) # [:,:,0] - first channel only because THIS SPECIFIC TASK!!
-        height=len(label[:,0])
-        width=len(label[0,:])
-        for i in range(width):
-            for j in range(height):
-                if(label[i,j]>=210):
-                    label[i,j]=1
-                else:
-                    label[i,j]=0
-        img=torch.from_numpy(img)
-        label=torch.from_numpy(label)
-        img=img.permute(2,0,1)
-        return img.type(torch.FloatTensor), label.type(torch.FloatTensor)
-    def __len__(self):
-        return len(names_learn)
-
-#-----------------------
 
 class DatasetCustom(data.Dataset):
     def __init__(self,typer): #def __init__(self, str): str - path or TYPE of forward
@@ -421,42 +279,12 @@ class Model(nn.Module):
         if ext == '.pkl' or '.pth':
             print('Loading weights into state dict...')
             self.load_state_dict(torch.load(weights_file, map_location=lambda storage, loc: storage))
-            # stirct false\true - 
+            # stirct false\true -
             # stirct false\true - allows us to load parameters from certain place
 
             print('Finished!')
         else:
             print('Sorry only .pth and .pkl files supported.')
-
-#
-# train_set=DataTrain()
-# data_train=data.DataLoader(train_set,batch_size=batch_size) # train data
-#
-# batch_size_valid=7
-# valid_data=DataValid()
-# data_valid=data.DataLoader(valid_data,batch_size=batch_size_valid)
-# loss=nn.CrossEntropyLoss()
-# loss=nn.MSELoss()
-# net=Model().to(device)
-
-# pdb.set_trace()
-# use_cuda = 0
-# net=net.to(device)
-
-# cuda.is_available()
-# pdb.set_trace()
-# net = net.cuda()
-#plt.ion
-
-# list_2 = []
-# for param in net.named_parameters():
-#     list_2.append(param)
-# print(len(list_2))
-
-#sys.exit(0)
-
-#pdb.set_trace()
-
 
 batch_size=4 #always in 2^N compatible. Warning: Dont forget to write a batch size to saved parameters filenames!!!
 data_set=DatasetCustom(1)
@@ -464,31 +292,17 @@ data_train=data.DataLoader(data_set, batch_size=batch_size, num_workers = 0)
 learn_rate=3e-2
 net = Model()
 net=net.cuda() # <-------------------
-# net=net.to(device)
-# pdb.set_trace()
-# type(net.parameters()) <class 'generator'>
-# type(net.parameters) <class 'method'>
-
-
 momentum=0.9
 loss=nn.CrossEntropyLoss()
 # optimizer=torch.optim.SGD(net.parameters(), lr=learn_rate,momentum=momentum)
 optimizer = torch.optim.RMSprop(net.parameters(), lr=learn_rate, weight_decay=1e-8)
-
 # torch.optim.SGD(params, lr=<required parameter>, momentum=0, dampening=0, weight_decay=0, nesterov=False)
-
 n_saved=0
-
 # prefix = n_saved
 prefix=str(n_saved)
-# print(type(prefix))
-# print(type(prefix))
-# save_folder="C:\\Users\\user\\Desktop\\DontTouchPLSpytorch\\Notes\\SavedParameters\\Cnn1\\"
 save_folder = "/home/std_11/MazurM/UnetV1/Parameters/" # also is used for load weights\parameters
 file="epoch_100_err_0.01_GoogleUnet1v1Params.pth" # change the name of the file that you want to load from
 # file="Cnn1V1Parameters.pth" # change the name of the file that you want to load from
-
-
 print("Do you want to LOAD parameters? IN Y/N")
 str_a=input()
 if(str_a=="Y" or str_a=="y"):
@@ -496,9 +310,7 @@ if(str_a=="Y" or str_a=="y"):
     print("Parameters SUCCESSFULLY Loaded")
 else:
     pass
-
 step_save=50
-
 print("do you want to TRAIN? IN Y/N")
 str_a=input()
 # pdb.set_trace()
@@ -636,18 +448,8 @@ if(str_a=="Y" or str_a=="y"):
     print("check saved parameters")
 else:
     pass
-#-------------------------------------------------------
-
-# for i,parameter in enumerate(net.parameters()):
-#     print(i," ",parameter.size())
-#
-#
-# pdb.set_trace()
-
-#----------------------------------------------------------------------------------
 batch_size_v=4
 total=0
-
 data_set=DatasetCustom(0)
 data_valid=data.DataLoader(data_set, batch_size=batch_size_v)
 with torch.no_grad():
@@ -657,12 +459,6 @@ with torch.no_grad():
         label=label.cuda()
         output=net(img)
         _,predicted=torch.max(output.data,1)
-        # pdb.set_trace()
-        #----------save predicted output------------------------------
-        # img = torch.from_numpy(img)
-        # img = img.permute(2, 0, 1)
-        # img=img.type(torch.long)
-        ##---------------------------------------------------------------
         img_pred=np.asarray(predicted.cpu())
         for index in range (batch_size_v):
             width=len(img_pred[index,:,0])
@@ -678,55 +474,24 @@ with torch.no_grad():
                         img_pred_draw[0,w,h]=244 # Blue
                         img_pred_draw[1,w,h]=88 # Red - pink
                         img_pred_draw[2,w,h]=234 # Yellow
-
             print("check your saved parameters")
-            # pdb.set_trace()
             img_pred_draw=torch.from_numpy(img_pred_draw)
             img_pred_draw=img_pred_draw.type(torch.FloatTensor)
             img_pred_draw=transforms.ToPILImage()(img_pred_draw)
-            # img_pred_draw.save("/home/std_11/MazurM/UnetV1/PredictedImages/predict.tiff")
             img_pred_draw.save("/home/std_11/MazurM/UnetV1/PredictedImages/"+str(index)+"V2predict.tiff")
             #------------label---------------
             label_out = label.type(torch.FloatTensor)
             label_out=label_out.data
             label_out=label_out.cpu()
-            # pdb.set_trace()
             wtf=label_out[index]
             wtf=wtf.unsqueeze(0)
-            # label_out = label_out.type(torch.int64)
-            # label_out=transforms.ToPILImage()(label_out)####
-            # label_out.save("/home/std_11/MazurM/UnetV1/PredictedImages/label.tiff")
-            # label_out.save("/home/std_11/MazurM/UnetV1/PredictedImages/"+str(i)+"V2label.tiff") ####
             wtf=transforms.ToPILImage()(wtf)
             wtf.save("/home/std_11/MazurM/UnetV1/PredictedImages/"+str(index)+"V2label.tiff")
             #-----------img----------------------
-            # img_in=img.data
             img_in=img.cpu()
             img_in=img_in[index]
-            # img_in=img_in.unsqueeze(0)
             img_in=transforms.ToPILImage()(img_in)
             img_in.save("/home/std_11/MazurM/UnetV1/PredictedImages/"+str(index)+"V2Photo.tiff")
-            # pdb.set_trace()
-
-        ##---------------------------------------------------------------
-        # img_out=img.data[0]
-        # img_out=img_out.cpu()
-        # img_out = transforms.ToPILImage()(img_out)
-        # img_out.save("/home/std_11/MazurM/UnetV1/PredictedImages/predict.tiff")
-        # label_out = label.type(torch.FloatTensor)
-        # label_out=label_out.data
-        # label_out=label_out.cpu()
-        # # label_out = label_out.type(torch.int64)
-        # label_out=transforms.ToPILImage()(label_out)
-        # label_out.save("/home/std_11/MazurM/UnetV1/PredictedImages/label.tiff")
-
-
-
-        # tvis.save_image(predicted,"/home/std_11/MazurM/UnetV1/PredictedImages/predict.tiff")
-        # tvis.utils.save_image(label,"/home/std_11/MazurM/UnetV1/PredictedImages/label.tiff")
-        #----------save predicted output--------------------------------
-
-
         total+=label.size(0)
         correct+=(predicted==label).sum() # think you step
         print("just for sake breakpoint")
